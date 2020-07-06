@@ -9,8 +9,8 @@ import (
 // ProjectRoot starts at the current working directory and looks for the
 // projects root directory, i.e. the directory containing the .git directory.
 //
-// ProjectRoot stops as soon as it found the .git directory upon reaching the
-// users home directory. In the later case it fails the test.
+// ProjectRoot stops as soon as it found the .git directory, or upon reaching
+// the users home directory. In the later case it fails the test.
 func ProjectRoot(t *testing.T) string {
 	userDir, err := os.UserHomeDir()
 	if err != nil {
