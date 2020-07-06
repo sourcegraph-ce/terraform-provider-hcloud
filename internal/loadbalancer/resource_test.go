@@ -44,6 +44,12 @@ func TestLoadBalancerResource_Basic(t *testing.T) {
 				),
 			},
 			{
+				// Try to import the newly created load balancer
+				ResourceName:      loadbalancer.ResourceType + ".basic-load-balancer",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				// Update the Load Balancer created in the previous step by
 				// setting all optional fields and renaming the load
 				// balancer.

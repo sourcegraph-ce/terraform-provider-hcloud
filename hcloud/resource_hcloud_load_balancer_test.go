@@ -4,10 +4,8 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"testing"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/hetznercloud/hcloud-go/hcloud"
@@ -30,193 +28,7 @@ func init() {
 	})
 }
 
-func TestAccHcloudLoadBalancer_Basic(t *testing.T) {
-	var loadBalancer hcloud.LoadBalancer
-	rInt := acctest.RandInt()
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccHcloudPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccHcloudCheckLoadBalancerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccHcloudCheckLoadBalancerConfig_basic(rInt),
-				Check: resource.ComposeTestCheckFunc(
-					testAccHcloudCheckLoadBalancerExists("hcloud_load_balancer.foobar", &loadBalancer),
-					resource.TestCheckResourceAttr(
-						"hcloud_load_balancer.foobar", "name", fmt.Sprintf("foo-load-balancer-%d", rInt)),
-					resource.TestCheckResourceAttr(
-						"hcloud_load_balancer.foobar", "location", "nbg1"),
-					resource.TestCheckResourceAttr(
-						"hcloud_load_balancer.foobar", "load_balancer_type", "lb11"),
-				),
-			},
-			{
-				Config: testAccHcloudCheckLoadBalancerConfig_Renamed(rInt),
-				Check: resource.ComposeTestCheckFunc(
-					testAccHcloudCheckLoadBalancerExists("hcloud_load_balancer.foobar", &loadBalancer),
-					resource.TestCheckResourceAttr(
-						"hcloud_load_balancer.foobar", "name", fmt.Sprintf("foo-load-balancer-renamed-%d", rInt)),
-					resource.TestCheckResourceAttr(
-						"hcloud_load_balancer.foobar", "location", "nbg1"),
-				),
-			},
-			{
-				Config: testAccHcloudCheckLoadBalancerConfig_withTargets(rInt),
-				Check: resource.ComposeTestCheckFunc(
-					testAccHcloudCheckLoadBalancerExists("hcloud_load_balancer.foobar_targets", &loadBalancer),
-					resource.TestCheckResourceAttr(
-						"hcloud_load_balancer.foobar_targets", "name", fmt.Sprintf("foo-load-balancer-targets-%d", rInt)),
-					resource.TestCheckResourceAttr(
-						"hcloud_load_balancer.foobar_targets", "location", "nbg1"),
-					resource.TestCheckResourceAttr(
-						"hcloud_load_balancer.foobar_targets", "target.#", "1"),
-					resource.TestCheckResourceAttr(
-						"hcloud_load_balancer.foobar_targets", "target.0.type", "server"),
-				),
-			},
-			{
-				Config: testAccHcloudCheckLoadBalancerConfig_withMultipleTargets(rInt),
-				Check: resource.ComposeTestCheckFunc(
-					testAccHcloudCheckLoadBalancerExists("hcloud_load_balancer.foobar_targets", &loadBalancer),
-					resource.TestCheckResourceAttr(
-						"hcloud_load_balancer.foobar_targets", "name", fmt.Sprintf("foo-load-balancer-targets-%d", rInt)),
-					resource.TestCheckResourceAttr(
-						"hcloud_load_balancer.foobar_targets", "location", "nbg1"),
-					resource.TestCheckResourceAttr(
-						"hcloud_load_balancer.foobar_targets", "target.#", "2"),
-					resource.TestCheckResourceAttr(
-						"hcloud_load_balancer.foobar_targets", "target.0.type", "server"),
-					resource.TestCheckResourceAttr(
-						"hcloud_load_balancer.foobar_targets", "target.1.type", "server"),
-				),
-			},
-			{
-				Config: testAccHcloudCheckLoadBalancerConfig_withMultipleTargetsDeleteTarget(rInt),
-				Check: resource.ComposeTestCheckFunc(
-					testAccHcloudCheckLoadBalancerExists("hcloud_load_balancer.foobar_targets", &loadBalancer),
-					resource.TestCheckResourceAttr(
-						"hcloud_load_balancer.foobar_targets", "name", fmt.Sprintf("foo-load-balancer-targets-%d", rInt)),
-					resource.TestCheckResourceAttr(
-						"hcloud_load_balancer.foobar_targets", "location", "nbg1"),
-					resource.TestCheckResourceAttr(
-						"hcloud_load_balancer.foobar_targets", "target.#", "1"),
-					resource.TestCheckResourceAttr(
-						"hcloud_load_balancer.foobar_targets", "target.0.type", "server"),
-				),
-			},
-		},
-	})
-}
-
-func testAccHcloudCheckLoadBalancerConfig_basic(rInt int) string {
-	return fmt.Sprintf(`
-resource "hcloud_load_balancer" "foobar" {
-  name       = "foo-load-balancer-%d"
-  load_balancer_type = "lb11"
-  location   = "nbg1"
-  algorithm {
-    type = "round_robin"
-  }
-}
-`, rInt)
-}
-
-func testAccHcloudCheckLoadBalancerConfig_Renamed(rInt int) string {
-	return fmt.Sprintf(`
-resource "hcloud_load_balancer" "foobar" {
-  name       = "foo-load-balancer-renamed-%d"
-  load_balancer_type = "lb11"
-  location   = "nbg1"
-  algorithm {
-    type = "round_robin"
-  }
-}
-`, rInt)
-}
-
-func testAccHcloudCheckLoadBalancerConfig_withTargets(rInt int) string {
-	return fmt.Sprintf(`
-resource "hcloud_server" "foobar" {
-  name       = "foo-server-%d"
-  server_type = "cx11"
-  image = "ubuntu-18.04"
-}
-resource "hcloud_load_balancer" "foobar_targets" {
-  name       = "foo-load-balancer-targets-%d"
-  load_balancer_type = "lb11"
-  location   = "nbg1"
-  algorithm {
-    type = "round_robin"
-  }
-  target {
-    type = "server"
-    server_id = "${hcloud_server.foobar.id}"
-  }
-}
-`, rInt, rInt)
-}
-
-func testAccHcloudCheckLoadBalancerConfig_withMultipleTargets(rInt int) string {
-	return fmt.Sprintf(`
-resource "hcloud_server" "foobar" {
-  name       = "foo-server-%d"
-  server_type = "cx11"
-  image = "ubuntu-18.04"
-}
-
-resource "hcloud_server" "foobar2" {
-  name       = "foo-server2-%d"
-  server_type = "cx11"
-  image = "ubuntu-18.04"
-}
-resource "hcloud_load_balancer" "foobar_targets" {
-  name       = "foo-load-balancer-targets-%d"
-  load_balancer_type = "lb11"
-  location   = "nbg1"
-  algorithm {
-    type = "round_robin"
-  }
-  target {
-    type = "server"
-    server_id = "${hcloud_server.foobar.id}"
-  }
-  target {
-    type = "server"
-    server_id = "${hcloud_server.foobar2.id}"
-  }
-}
-`, rInt, rInt, rInt)
-}
-
-func testAccHcloudCheckLoadBalancerConfig_withMultipleTargetsDeleteTarget(rInt int) string {
-	return fmt.Sprintf(`
-resource "hcloud_server" "foobar" {
-  name       = "foo-server-%d"
-  server_type = "cx11"
-  image = "ubuntu-18.04"
-}
-
-resource "hcloud_server" "foobar2" {
-  name       = "foo-server2-%d"
-  server_type = "cx11"
-  image = "ubuntu-18.04"
-}
-resource "hcloud_load_balancer" "foobar_targets" {
-  name       = "foo-load-balancer-targets-%d"
-  load_balancer_type = "lb11"
-  location   = "nbg1"
-  algorithm {
-    type = "round_robin"
-  }
-
-  target {
-    type = "server"
-    server_id = "${hcloud_server.foobar2.id}"
-  }
-}
-`, rInt, rInt, rInt)
-}
-
+// Deprecated: there is a generic destroy check in testsupport
 func testAccHcloudCheckLoadBalancerDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*hcloud.Client)
 
@@ -244,6 +56,7 @@ func testAccHcloudCheckLoadBalancerDestroy(s *terraform.State) error {
 	return nil
 }
 
+// Deprecated: there is a generic existence check in testsupport
 func testAccHcloudCheckLoadBalancerExists(n string, loadBalancer *hcloud.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -277,6 +90,7 @@ func testAccHcloudCheckLoadBalancerExists(n string, loadBalancer *hcloud.LoadBal
 	}
 }
 
+// Deprecated: moved to internal/loadbalancers
 func testSweepLoadBalancers(region string) error {
 	client, err := createClient()
 	if err != nil {
