@@ -9,6 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-hcloud/internal/network"
 	"github.com/terraform-providers/terraform-provider-hcloud/internal/server"
 	"github.com/terraform-providers/terraform-provider-hcloud/internal/testsupport"
+	"github.com/terraform-providers/terraform-provider-hcloud/internal/testtemplate"
 )
 
 func init() {
@@ -20,6 +21,14 @@ func init() {
 		}, // TODO add certificates and possible more sweepers
 		F: Sweep,
 	})
+}
+
+// Basic Load Balancer for use in load balancer related test.
+//
+// Do not modify!
+var Basic= &testtemplate.RLoadBalancer{
+	Name:         "basic-load-balancer",
+	LocationName: "nbg1",
 }
 
 // Sweep removes all Load Balancers from the backend.

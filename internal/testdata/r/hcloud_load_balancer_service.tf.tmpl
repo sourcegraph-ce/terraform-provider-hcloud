@@ -1,0 +1,16 @@
+{{- /* vim: set ft=terraform: */ -}}
+
+resource "hcloud_load_balancer_service" "{{ .Name }}" {
+  {{/* Required properties */ -}}
+  load_balancer_id = {{ .LoadBalancerID }}
+  protocol         = "{{ .Protocol }}"
+
+  {{- /* Optional properties */}}
+  {{- if .ListenPort }}
+  listen_port      = {{ .ListenPort }}
+  {{ end }}
+  {{- if .DestinationPort }}
+  destination_port = {{ .DestinationPort }}
+  {{ end }}
+  proxyprotocol    = {{ .Proxyprotocol }}
+}

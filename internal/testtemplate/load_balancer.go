@@ -20,6 +20,19 @@ type RLoadBalancerInlineServerTarget struct {
 	ServerID string
 }
 
+// RLoadBalancerService defines the fields for the
+// "testdata/r/hcloud_load_balancer_service" template.
+type RLoadBalancerService struct {
+	DataCommon
+
+	Name            string
+	LoadBalancerID  string
+	Protocol        string
+	ListenPort      int
+	DestinationPort int
+	Proxyprotocol   bool
+}
+
 // RLoadBalancerTarget defines the fields for the
 // "testdata/r/hcloud_load_balancer_target" template.
 type RLoadBalancerTarget struct {

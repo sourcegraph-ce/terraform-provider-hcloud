@@ -26,12 +26,7 @@ func TestLoadBalancerResource_Basic(t *testing.T) {
 			{
 				// Create a new Load Balancer using the required values
 				// only.
-				Config: tmplMan.Render(t,
-					"testdata/r/hcloud_load_balancer", &testtemplate.RLoadBalancer{
-						Name:         "basic-load-balancer",
-						LocationName: "nbg1",
-					},
-				),
+				Config: tmplMan.Render(t, "testdata/r/hcloud_load_balancer", loadbalancer.Basic),
 				Check: resource.ComposeTestCheckFunc(
 					testsupport.CheckResourceExists(loadbalancer.ResourceType+".basic-load-balancer",
 						loadbalancer.ByID(t, &lb)),
@@ -45,7 +40,7 @@ func TestLoadBalancerResource_Basic(t *testing.T) {
 			},
 			{
 				// Try to import the newly created load balancer
-				ResourceName:      loadbalancer.ResourceType + ".basic-load-balancer",
+				ResourceName:      loadbalancer.ResourceType + "." + loadbalancer.Basic.Name,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -55,7 +50,7 @@ func TestLoadBalancerResource_Basic(t *testing.T) {
 				// balancer.
 				Config: tmplMan.Render(t,
 					"testdata/r/hcloud_load_balancer", &testtemplate.RLoadBalancer{
-						Name:         "basic-load-balancer-renamed",
+						Name:         loadbalancer.Basic.Name + "-renamed",
 						LocationName: "nbg1",
 						Algorithm:    "least_connections",
 						Labels: map[string]string{
