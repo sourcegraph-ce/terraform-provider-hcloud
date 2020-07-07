@@ -87,3 +87,10 @@ func CheckResourceAttrFunc(name, key string, valueFunc func() string) resource.T
 		return resource.TestCheckResourceAttr(name, key, value)(s)
 	}
 }
+
+// LiftTCF lifts f to a resource.TestCheckFunc.
+func LiftTCF(f func() error) resource.TestCheckFunc {
+	return func(_ *terraform.State) error {
+		return f()
+	}
+}

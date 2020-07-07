@@ -16,3 +16,15 @@ type RServer struct {
 	Labels       map[string]string
 	UserData     string
 }
+
+// RServerNetwork defines the fields for the "testdata/r/hcloud_server_network"
+// template.
+type RServerNetwork struct {
+	DataCommon
+
+	Name      string
+	ServerID  string
+	NetworkID string
+	IP        string
+	AliasIPs  []string
+}

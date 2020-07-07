@@ -19,3 +19,28 @@ type RLoadBalancer struct {
 type RLoadBalancerInlineServerTarget struct {
 	ServerID string
 }
+
+// RLoadBalancerTarget defines the fields for the
+// "testdata/r/hcloud_load_balancer_target" template.
+type RLoadBalancerTarget struct {
+	DataCommon
+
+	Name           string
+	Type           string
+	LoadBalancerID string
+	ServerID       string
+	UsePrivateIP   bool
+	DependsOn      []string
+}
+
+// RLoadBalancerNetwork defines the fields for the
+// "testdata/r/hcloud_load_balancer_network" template.
+type RLoadBalancerNetwork struct {
+	DataCommon
+
+	Name                  string
+	LoadBalancerID        string
+	NetworkID             string
+	IP                    string
+	EnablePublicInterface bool
+}
