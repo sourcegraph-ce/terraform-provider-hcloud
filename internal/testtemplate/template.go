@@ -60,6 +60,13 @@ func (ts *Manager) init(t *testing.T) {
 		ts.tmpl = template.New("testdata")
 		ts.tmpl.Funcs(template.FuncMap{
 			"StringsJoin": strings.Join,
+			"DQuoteS": func(ss []string) []string {
+				res := make([]string, len(ss))
+				for i, s := range ss {
+					res[i] = fmt.Sprintf("\"%s\"", s)
+				}
+				return res
+			},
 		})
 
 		// We can't use template/Template.ParseGlob here since we want to add a

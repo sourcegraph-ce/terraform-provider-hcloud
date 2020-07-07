@@ -26,7 +26,7 @@ func init() {
 // Basic Load Balancer for use in load balancer related test.
 //
 // Do not modify!
-var Basic= &testtemplate.RLoadBalancer{
+var Basic = &testtemplate.RLoadBalancer{
 	Name:         "basic-load-balancer",
 	LocationName: "nbg1",
 }

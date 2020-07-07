@@ -31,6 +31,40 @@ type RLoadBalancerService struct {
 	ListenPort      int
 	DestinationPort int
 	Proxyprotocol   bool
+
+	AddHTTP bool // Required as the RLoadBalancerServiceHTTP is not comparable
+	HTTP    RLoadBalancerServiceHTTP
+
+	AddHealthCheck bool // Required as the RLoadBalancerServiceHealthCheck is not comparable
+	HealthCheck    RLoadBalancerServiceHealthCheck
+}
+
+// RLoadBalancerServiceHTTP contains data for an HTTP load balancer service.
+type RLoadBalancerServiceHTTP struct {
+	CookieName     string
+	CookieLifeTime int
+	Certificates   []string
+}
+
+// RLoadBalancerServiceHealthCheck contains data for a load balancer service
+// Health Check.
+type RLoadBalancerServiceHealthCheck struct {
+	Protocol string
+	Port     int
+	Interval int
+	Timeout  int
+	Retries  int
+	HTTP     RLoadBalancerServiceHealthCheckHTTP
+}
+
+// RLoadBalancerServiceHealthCheckHTTP contains data for a load balancer service
+// HTTP Health Check.
+type RLoadBalancerServiceHealthCheckHTTP struct {
+	Domain      string
+	Path        string
+	Response    string
+	TLS         bool
+	StatusCodes []string
 }
 
 // RLoadBalancerTarget defines the fields for the

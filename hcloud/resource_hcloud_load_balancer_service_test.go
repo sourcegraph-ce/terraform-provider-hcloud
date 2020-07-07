@@ -27,38 +27,6 @@ func TestAccHcloudLoadBalancerService_Create(t *testing.T) {
 		CheckDestroy: testAccHcloudCheckLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccLoadBalancerService_RequiredOnly(rInt),
-				Check: resource.ComposeTestCheckFunc(
-					testAccHcloudCheckLoadBalancerExists("hcloud_load_balancer.test_load_balancer", &loadBalancer),
-					testAccHcloudCheckLoadBalancerServiceExists(
-						"hcloud_load_balancer_service.test_load_balancer_service", 80),
-					resource.TestCheckResourceAttr(
-						"hcloud_load_balancer_service.test_load_balancer_service", "protocol", "http"),
-					resource.TestCheckResourceAttr(
-						"hcloud_load_balancer_service.test_load_balancer_service", "listen_port", "80"),
-					resource.TestCheckResourceAttr(
-						"hcloud_load_balancer_service.test_load_balancer_service", "destination_port", "80"),
-					resource.TestCheckResourceAttr(
-						"hcloud_load_balancer_service.test_load_balancer_service", "proxyprotocol", "false"),
-				),
-			},
-			{
-				Config: testAccLoadBalancerService_WithOptionalAttrs(rInt),
-				Check: resource.ComposeTestCheckFunc(
-					testAccHcloudCheckLoadBalancerExists("hcloud_load_balancer.test_load_balancer", &loadBalancer),
-					testAccHcloudCheckLoadBalancerServiceExists(
-						"hcloud_load_balancer_service.test_load_balancer_service", 81),
-					resource.TestCheckResourceAttr(
-						"hcloud_load_balancer_service.test_load_balancer_service", "protocol", "http"),
-					resource.TestCheckResourceAttr(
-						"hcloud_load_balancer_service.test_load_balancer_service", "listen_port", "81"),
-					resource.TestCheckResourceAttr(
-						"hcloud_load_balancer_service.test_load_balancer_service", "destination_port", "82"),
-					resource.TestCheckResourceAttr(
-						"hcloud_load_balancer_service.test_load_balancer_service", "proxyprotocol", "true"),
-				),
-			},
-			{
 				Config: testAccLoadBalancerService_HTTPS(rInt, rKey, rCert),
 				Check: resource.ComposeTestCheckFunc(
 					testAccHcloudCheckLoadBalancerExists("hcloud_load_balancer.test_load_balancer", &loadBalancer),
@@ -76,24 +44,6 @@ func TestAccHcloudLoadBalancerService_Create(t *testing.T) {
 						"hcloud_load_balancer_service.test_load_balancer_service_https", "http.0.cookie_lifetime", "300"),
 					resource.TestCheckResourceAttr(
 						"hcloud_load_balancer_service.test_load_balancer_service_https", "http.0.certificates.#", "1"),
-				),
-			},
-			{
-				Config: testAccLoadBalancerService_HealthCheck(rInt),
-				Check: resource.ComposeTestCheckFunc(
-					testAccHcloudCheckLoadBalancerExists("hcloud_load_balancer.test_load_balancer", &loadBalancer),
-					resource.TestCheckResourceAttr(
-						"hcloud_load_balancer_service.test_load_balancer_service_with_health_check", "health_check.#", "1"),
-					resource.TestCheckResourceAttr(
-						"hcloud_load_balancer_service.test_load_balancer_service_with_health_check", "health_check.0.port", "80"),
-					resource.TestCheckResourceAttr(
-						"hcloud_load_balancer_service.test_load_balancer_service_with_health_check", "health_check.0.http.0.domain", "example.org"),
-					resource.TestCheckResourceAttr(
-						"hcloud_load_balancer_service.test_load_balancer_service_with_health_check", "health_check.0.http.0.path", "/internal/health"),
-					resource.TestCheckResourceAttr(
-						"hcloud_load_balancer_service.test_load_balancer_service_with_health_check", "health_check.0.http.0.response", `{"status": "ok"}`),
-					resource.TestCheckResourceAttr(
-						"hcloud_load_balancer_service.test_load_balancer_service_with_health_check", "health_check.0.http.0.status_codes.0", "200"),
 				),
 			},
 		},
@@ -124,27 +74,6 @@ func testAccLoadBalancerServiceCertificate(rInt int, key, cert string) string {
 	}`, rInt, key, cert)
 }
 
-func testAccLoadBalancerService_RequiredOnly(rInt int) string {
-	lbSvc := `
-	resource "hcloud_load_balancer_service" "test_load_balancer_service" {
-		load_balancer_id = "${hcloud_load_balancer.test_load_balancer.id}"
-		protocol = "http"
-	}`
-	return fmt.Sprintf("%s\n%s", testAccLoadBalancerServiceLoadBalancer(rInt), lbSvc)
-}
-
-func testAccLoadBalancerService_WithOptionalAttrs(rInt int) string {
-	lbSvc := `
-	resource "hcloud_load_balancer_service" "test_load_balancer_service" {
-		load_balancer_id = "${hcloud_load_balancer.test_load_balancer.id}"
-		protocol = "http"
-		listen_port = 81
-		destination_port = 82
-		proxyprotocol = true
-	}`
-	return fmt.Sprintf("%s\n%s", testAccLoadBalancerServiceLoadBalancer(rInt), lbSvc)
-}
-
 func testAccLoadBalancerService_HTTPS(rInt int, key, cert string) string {
 	lbSvc := `
 	resource "hcloud_load_balancer_service" "test_load_balancer_service_https" {
@@ -159,29 +88,6 @@ func testAccLoadBalancerService_HTTPS(rInt int, key, cert string) string {
 	}`
 	return fmt.Sprintf("%s\n%s\n%s",
 		testAccLoadBalancerServiceCertificate(rInt, key, cert),
-		testAccLoadBalancerServiceLoadBalancer(rInt),
-		lbSvc)
-}
-
-func testAccLoadBalancerService_HealthCheck(rInt int) string {
-	lbSvc := `
-	resource "hcloud_load_balancer_service" "test_load_balancer_service_with_health_check" {
-		load_balancer_id = "${hcloud_load_balancer.test_load_balancer.id}"
-		protocol = "http"
-		health_check {
-			protocol = "http"
-			port = 80
-			interval = 10
-			timeout = 5
-			http {
-				domain = "example.org"
-				path = "/internal/health"
-				response = "{\"status\": \"ok\"}"
-				status_codes = [200]
-			}
-		}
-	}`
-	return fmt.Sprintf("%s\n%s",
 		testAccLoadBalancerServiceLoadBalancer(rInt),
 		lbSvc)
 }
