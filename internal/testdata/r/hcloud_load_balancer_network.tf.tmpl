@@ -5,10 +5,8 @@ resource "hcloud_load_balancer_network" "{{ .Name }}" {
   load_balancer_id         = {{ .LoadBalancerID }}
   network_id               = {{ .NetworkID }}
   {{- /* Optional properties */}}
+  enable_public_interface  = {{ .EnablePublicInterface }}
   {{- if .IP }}
   ip                       = "{{ .IP }}"
-  {{ end }}
-  {{- if .EnablePublicInterface }}
-  enable_public_interface  = {{ .EnablePublicInterface }}
   {{ end }}
 }
