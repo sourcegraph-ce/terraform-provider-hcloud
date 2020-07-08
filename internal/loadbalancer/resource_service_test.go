@@ -5,8 +5,10 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hetznercloud/hcloud-go/hcloud"
+	"github.com/terraform-providers/terraform-provider-hcloud/internal/certificate"
 	"github.com/terraform-providers/terraform-provider-hcloud/internal/loadbalancer"
 	"github.com/terraform-providers/terraform-provider-hcloud/internal/testsupport"
 	"github.com/terraform-providers/terraform-provider-hcloud/internal/testtemplate"
@@ -161,6 +163,64 @@ func TestAccHcloudLoadBalancerService_HTTP(t *testing.T) {
 					resource.TestCheckResourceAttr(svcResName, "health_check.0.http.0.response", "OK"),
 					resource.TestCheckResourceAttr(svcResName, "health_check.0.http.0.status_codes.0", "2??"),
 					resource.TestCheckResourceAttr(svcResName, "health_check.0.http.0.status_codes.1", "301"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccHcloudLoadBalancerService_HTTPS(t *testing.T) {
+	var (
+		lb   hcloud.LoadBalancer
+		cert hcloud.Certificate
+	)
+
+	rCert, rKey, err := acctest.RandTLSCert("example.org")
+	if err != nil {
+		t.Fatal(err)
+	}
+	certData := &testtemplate.RCertificate{
+		Name:        "test-cert",
+		PrivateKey:  rKey,
+		Certificate: rCert,
+	}
+	certResName := fmt.Sprintf("%s.%s", certificate.ResourceType, certData.Name)
+
+	lbResName := fmt.Sprintf("%s.%s", loadbalancer.ResourceType, loadbalancer.Basic.Name)
+	svcName := "lb-https-service-test"
+	svcResName := fmt.Sprintf("%s.%s", loadbalancer.ServiceResourceType, svcName)
+
+	tmplMan := testtemplate.Manager{}
+	resource.Test(t, resource.TestCase{
+		PreCheck:     testsupport.AccTestPreCheck(t),
+		Providers:    testsupport.AccTestProviders(),
+		CheckDestroy: testsupport.CheckResourcesDestroyed(loadbalancer.ResourceType, loadbalancer.ByID(t, nil)),
+		Steps: []resource.TestStep{
+			{
+				Config: tmplMan.Render(t,
+					"testdata/r/hcloud_certificate", certData,
+					"testdata/r/hcloud_load_balancer", loadbalancer.Basic,
+					"testdata/r/hcloud_load_balancer_service", &testtemplate.RLoadBalancerService{
+						Name:           svcName,
+						LoadBalancerID: lbResName + ".id",
+						Protocol:       "https",
+						AddHTTP:        true,
+						HTTP: testtemplate.RLoadBalancerServiceHTTP{
+							Certificates: []string{certResName + ".id"},
+							RedirectHTTP: true,
+						},
+					},
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testsupport.CheckResourceExists(lbResName, loadbalancer.ByID(t, &lb)),
+					testsupport.CheckResourceExists(certResName, certificate.ByID(t, &cert)),
+					testsupport.LiftTCF(hasService(&lb, 443)),
+					testsupport.CheckResourceAttrFunc(svcResName, "http.0.certificates.0", func() string {
+						return strconv.Itoa(cert.ID)
+					}),
+					resource.TestCheckResourceAttr(svcResName, "protocol", "https"),
+					resource.TestCheckResourceAttr(svcResName, "listen_port", "443"),
+					resource.TestCheckResourceAttr(svcResName, "destination_port", "80"),
 				),
 			},
 		},

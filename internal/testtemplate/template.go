@@ -59,7 +59,8 @@ func (ts *Manager) init(t *testing.T) {
 
 		ts.tmpl = template.New("testdata")
 		ts.tmpl.Funcs(template.FuncMap{
-			"StringsJoin": strings.Join,
+			"StringsJoin":      strings.Join,
+			"StringsTrimSpace": strings.TrimSpace,
 			"DQuoteS": func(ss []string) []string {
 				res := make([]string, len(ss))
 				for i, s := range ss {

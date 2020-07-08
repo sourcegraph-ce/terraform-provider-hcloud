@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hetznercloud/hcloud-go/hcloud"
+	"github.com/terraform-providers/terraform-provider-hcloud/internal/certificate"
 	"github.com/terraform-providers/terraform-provider-hcloud/internal/network"
 	"github.com/terraform-providers/terraform-provider-hcloud/internal/server"
 	"github.com/terraform-providers/terraform-provider-hcloud/internal/testsupport"
@@ -16,9 +17,10 @@ func init() {
 	resource.AddTestSweepers(ResourceType, &resource.Sweeper{
 		Name: ResourceType,
 		Dependencies: []string{
+			certificate.ResourceType,
 			server.ResourceType,
 			network.ResourceType,
-		}, // TODO add certificates and possible more sweepers
+		},
 		F: Sweep,
 	})
 }

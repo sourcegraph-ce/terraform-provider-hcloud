@@ -17,7 +17,8 @@ resource "hcloud_load_balancer_service" "{{ .Name }}" {
   http {
     {{ if .HTTP.CookieName -}}    cookie_name     = "{{ .HTTP.CookieName }}"{{ end }}
     {{ if .HTTP.CookieLifeTime -}}cookie_lifetime = "{{ .HTTP.CookieLifeTime }}"{{ end }}
-    {{ if .HTTP.Certificates -}}  certificates    = [{{ StringsJoin .HTTP.Certificates }}]{{ end }}
+    {{ if .HTTP.RedirectHTTP -}}  redirect_http   = {{ .HTTP.RedirectHTTP }}{{ end }}
+    {{ if .HTTP.Certificates -}}  certificates    = [{{ StringsJoin .HTTP.Certificates ", " }}]{{ end }}
   }
   {{ end }}
   {{- if .AddHealthCheck }}

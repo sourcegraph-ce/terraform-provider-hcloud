@@ -44,6 +44,7 @@ type RLoadBalancerServiceHTTP struct {
 	CookieName     string
 	CookieLifeTime int
 	Certificates   []string
+	RedirectHTTP   bool
 }
 
 // RLoadBalancerServiceHealthCheck contains data for a load balancer service
