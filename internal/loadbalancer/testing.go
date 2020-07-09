@@ -2,6 +2,7 @@ package loadbalancer
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -83,6 +84,11 @@ type DData struct {
 	LabelSelector    string
 }
 
+// HCLID returns the data source identifier.
+func (d *DData) HCLID() string {
+	return fmt.Sprintf("data.%s.%s", DataSourceType, d.Name)
+}
+
 // RData defines the fields for the "testdata/r/hcloud_load_balancer"
 // template.
 type RData struct {
@@ -95,6 +101,11 @@ type RData struct {
 	Algorithm     string
 	ServerTargets []RDataInlineServerTarget
 	Labels        map[string]string
+}
+
+// HCLID returns the resource identifier.
+func (d *RData) HCLID() string {
+	return fmt.Sprintf("%s.%s", ResourceType, d.Name)
 }
 
 // RDataInlineServerTarget represents a Load Balancer server target

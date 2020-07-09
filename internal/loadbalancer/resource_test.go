@@ -17,7 +17,18 @@ import (
 func TestLoadBalancerResource_Basic(t *testing.T) {
 	var lb hcloud.LoadBalancer
 
-	tmplMan := testtemplate.Manager{RandInt: acctest.RandInt()}
+	res := loadbalancer.Basic
+	resRenamed := &loadbalancer.RData{
+		Name:         res.Name + "-renamed",
+		LocationName: "nbg1",
+		Algorithm:    "least_connections",
+		Labels: map[string]string{
+			"key1": "value1",
+			"key2": "value2",
+		},
+	}
+
+	tmplMan := testtemplate.Manager{}
 	resource.Test(t, resource.TestCase{
 		PreCheck:     testsupport.AccTestPreCheck(t),
 		Providers:    testsupport.AccTestProviders(),
@@ -26,21 +37,18 @@ func TestLoadBalancerResource_Basic(t *testing.T) {
 			{
 				// Create a new Load Balancer using the required values
 				// only.
-				Config: tmplMan.Render(t, "testdata/r/hcloud_load_balancer", loadbalancer.Basic),
+				Config: tmplMan.Render(t, "testdata/r/hcloud_load_balancer", res),
 				Check: resource.ComposeTestCheckFunc(
-					testsupport.CheckResourceExists(loadbalancer.ResourceType+".basic-load-balancer",
-						loadbalancer.ByID(t, &lb)),
-					resource.TestCheckResourceAttr(loadbalancer.ResourceType+".basic-load-balancer",
-						"name", fmt.Sprintf("basic-load-balancer--%d", tmplMan.RandInt)),
-					resource.TestCheckResourceAttr(loadbalancer.ResourceType+".basic-load-balancer",
-						"load_balancer_type", "lb11"),
-					resource.TestCheckResourceAttr(loadbalancer.ResourceType+".basic-load-balancer",
-						"location", "nbg1"),
+					testsupport.CheckResourceExists(res.HCLID(), loadbalancer.ByID(t, &lb)),
+					resource.TestCheckResourceAttr(res.HCLID(), "name",
+						fmt.Sprintf("basic-load-balancer--%d", tmplMan.RandInt)),
+					resource.TestCheckResourceAttr(res.HCLID(), "load_balancer_type", "lb11"),
+					resource.TestCheckResourceAttr(res.HCLID(), "location", "nbg1"),
 				),
 			},
 			{
 				// Try to import the newly created load balancer
-				ResourceName:      loadbalancer.ResourceType + "." + loadbalancer.Basic.Name,
+				ResourceName:      res.HCLID(),
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -49,29 +57,16 @@ func TestLoadBalancerResource_Basic(t *testing.T) {
 				// setting all optional fields and renaming the load
 				// balancer.
 				Config: tmplMan.Render(t,
-					"testdata/r/hcloud_load_balancer", &loadbalancer.RData{
-						Name:         loadbalancer.Basic.Name + "-renamed",
-						LocationName: "nbg1",
-						Algorithm:    "least_connections",
-						Labels: map[string]string{
-							"key1": "value1",
-							"key2": "value2",
-						},
-					},
+					"testdata/r/hcloud_load_balancer", resRenamed,
 				),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(loadbalancer.ResourceType+".basic-load-balancer-renamed",
-						"name", fmt.Sprintf("basic-load-balancer-renamed--%d", tmplMan.RandInt)),
-					resource.TestCheckResourceAttr(loadbalancer.ResourceType+".basic-load-balancer-renamed",
-						"load_balancer_type", "lb11"),
-					resource.TestCheckResourceAttr(loadbalancer.ResourceType+".basic-load-balancer-renamed",
-						"location", "nbg1"),
-					resource.TestCheckResourceAttr(loadbalancer.ResourceType+".basic-load-balancer-renamed",
-						"algorithm.0.type", "least_connections"),
-					resource.TestCheckResourceAttr(loadbalancer.ResourceType+".basic-load-balancer-renamed",
-						"labels.key1", "value1"),
-					resource.TestCheckResourceAttr(loadbalancer.ResourceType+".basic-load-balancer-renamed",
-						"labels.key2", "value2"),
+					resource.TestCheckResourceAttr(resRenamed.HCLID(), "name",
+						fmt.Sprintf("basic-load-balancer-renamed--%d", tmplMan.RandInt)),
+					resource.TestCheckResourceAttr(resRenamed.HCLID(), "load_balancer_type", "lb11"),
+					resource.TestCheckResourceAttr(resRenamed.HCLID(), "location", "nbg1"),
+					resource.TestCheckResourceAttr(resRenamed.HCLID(), "algorithm.0.type", "least_connections"),
+					resource.TestCheckResourceAttr(resRenamed.HCLID(), "labels.key1", "value1"),
+					resource.TestCheckResourceAttr(resRenamed.HCLID(), "labels.key2", "value2"),
 				),
 			},
 		},

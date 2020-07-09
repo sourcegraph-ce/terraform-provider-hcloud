@@ -13,14 +13,26 @@ import (
 func TestAccHcloudDataSourceLoadBalancerTest(t *testing.T) {
 	tmplMan := testtemplate.Manager{}
 
-	lbData := &loadbalancer.RData{
+	res := &loadbalancer.RData{
 		Name:         "some-load-balancer",
 		LocationName: "nbg1",
 		Labels: map[string]string{
 			"key": "value",
 		},
 	}
-	lbResName := fmt.Sprintf("%s.%s", loadbalancer.ResourceType, lbData.Name)
+	lbByName := &loadbalancer.DData{
+		Name:             "lb_by_name",
+		LoadBalancerName: res.HCLID() + ".name",
+	}
+	lbByID := &loadbalancer.DData{
+		Name:           "lb_by_id",
+		LoadBalancerID: res.HCLID() + ".id",
+	}
+	lbBySel := &loadbalancer.DData{
+		Name:          "lb_by_sel",
+		LabelSelector: fmt.Sprintf("key=${%s.labels[\"key\"]}", res.HCLID()),
+	}
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:     testsupport.AccTestPreCheck(t),
 		Providers:    testsupport.AccTestProviders(),
@@ -28,48 +40,30 @@ func TestAccHcloudDataSourceLoadBalancerTest(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: tmplMan.Render(t,
-					"testdata/r/hcloud_load_balancer", lbData,
-					"testdata/d/hcloud_load_balancer", &loadbalancer.DData{
-						Name:             "lb_by_name",
-						LoadBalancerName: fmt.Sprintf("%s.name", lbResName),
-					},
-					"testdata/d/hcloud_load_balancer", &loadbalancer.DData{
-						Name:           "lb_by_id",
-						LoadBalancerID: fmt.Sprintf("%s.id", lbResName),
-					},
-					"testdata/d/hcloud_load_balancer", &loadbalancer.DData{
-						Name:          "lb_by_sel",
-						LabelSelector: fmt.Sprintf("key=${%s.labels[\"key\"]}", lbResName),
-					},
+					"testdata/r/hcloud_load_balancer", res,
+					"testdata/d/hcloud_load_balancer", lbByName,
+					"testdata/d/hcloud_load_balancer", lbByID,
+					"testdata/d/hcloud_load_balancer", lbBySel,
 				),
 
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(fmt.Sprintf("data.%s.lb_by_name", loadbalancer.DataSourceType),
-						"name", fmt.Sprintf("%s--%d", lbData.Name, tmplMan.RandInt)),
-					resource.TestCheckResourceAttr(fmt.Sprintf("data.%s.lb_by_name", loadbalancer.DataSourceType),
-						"location", lbData.LocationName),
-					resource.TestCheckResourceAttr(fmt.Sprintf("data.%s.lb_by_name", loadbalancer.DataSourceType),
-						"target.#", "0"),
-					resource.TestCheckResourceAttr(fmt.Sprintf("data.%s.lb_by_name", loadbalancer.DataSourceType),
-						"service.#", "0"),
+					resource.TestCheckResourceAttr(lbByName.HCLID(),
+						"name", fmt.Sprintf("%s--%d", res.Name, tmplMan.RandInt)),
+					resource.TestCheckResourceAttr(lbByName.HCLID(), "location", res.LocationName),
+					resource.TestCheckResourceAttr(lbByName.HCLID(), "target.#", "0"),
+					resource.TestCheckResourceAttr(lbByName.HCLID(), "service.#", "0"),
 
-					resource.TestCheckResourceAttr(fmt.Sprintf("data.%s.lb_by_id", loadbalancer.DataSourceType),
-						"name", fmt.Sprintf("%s--%d", lbData.Name, tmplMan.RandInt)),
-					resource.TestCheckResourceAttr(fmt.Sprintf("data.%s.lb_by_id", loadbalancer.DataSourceType),
-						"location", lbData.LocationName),
-					resource.TestCheckResourceAttr(fmt.Sprintf("data.%s.lb_by_id", loadbalancer.DataSourceType),
-						"target.#", "0"),
-					resource.TestCheckResourceAttr(fmt.Sprintf("data.%s.lb_by_id", loadbalancer.DataSourceType),
-						"service.#", "0"),
+					resource.TestCheckResourceAttr(lbByID.HCLID(),
+						"name", fmt.Sprintf("%s--%d", res.Name, tmplMan.RandInt)),
+					resource.TestCheckResourceAttr(lbByID.HCLID(), "location", res.LocationName),
+					resource.TestCheckResourceAttr(lbByID.HCLID(), "target.#", "0"),
+					resource.TestCheckResourceAttr(lbByID.HCLID(), "service.#", "0"),
 
-					resource.TestCheckResourceAttr(fmt.Sprintf("data.%s.lb_by_sel", loadbalancer.DataSourceType),
-						"name", fmt.Sprintf("%s--%d", lbData.Name, tmplMan.RandInt)),
-					resource.TestCheckResourceAttr(fmt.Sprintf("data.%s.lb_by_sel", loadbalancer.DataSourceType),
-						"location", lbData.LocationName),
-					resource.TestCheckResourceAttr(fmt.Sprintf("data.%s.lb_by_sel", loadbalancer.DataSourceType),
-						"target.#", "0"),
-					resource.TestCheckResourceAttr(fmt.Sprintf("data.%s.lb_by_sel", loadbalancer.DataSourceType),
-						"service.#", "0"),
+					resource.TestCheckResourceAttr(lbBySel.HCLID(),
+						"name", fmt.Sprintf("%s--%d", res.Name, tmplMan.RandInt)),
+					resource.TestCheckResourceAttr(lbBySel.HCLID(), "location", res.LocationName),
+					resource.TestCheckResourceAttr(lbBySel.HCLID(), "target.#", "0"),
+					resource.TestCheckResourceAttr(lbBySel.HCLID(), "service.#", "0"),
 				),
 			},
 		},
