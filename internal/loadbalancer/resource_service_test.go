@@ -5,7 +5,6 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hetznercloud/hcloud-go/hcloud"
 	"github.com/terraform-providers/terraform-provider-hcloud/internal/certificate"
@@ -175,15 +174,7 @@ func TestAccHcloudLoadBalancerService_HTTPS(t *testing.T) {
 		cert hcloud.Certificate
 	)
 
-	rCert, rKey, err := acctest.RandTLSCert("example.org")
-	if err != nil {
-		t.Fatal(err)
-	}
-	certData := &testtemplate.RCertificate{
-		Name:        "test-cert",
-		PrivateKey:  rKey,
-		Certificate: rCert,
-	}
+	certData := testtemplate.NewRCertificate(t, "test-cert", "example.org")
 	certResName := fmt.Sprintf("%s.%s", certificate.ResourceType, certData.Name)
 
 	lbResName := fmt.Sprintf("%s.%s", loadbalancer.ResourceType, loadbalancer.Basic.Name)
@@ -222,6 +213,64 @@ func TestAccHcloudLoadBalancerService_HTTPS(t *testing.T) {
 					resource.TestCheckResourceAttr(svcResName, "listen_port", "443"),
 					resource.TestCheckResourceAttr(svcResName, "destination_port", "80"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccHcloudLoadBalancerService_CreateDelete_NoListenPort(t *testing.T) {
+	svcName := "lb-create-delete-service-test"
+
+	tmplMan := testtemplate.Manager{}
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     testsupport.AccTestPreCheck(t),
+		Providers:    testsupport.AccTestProviders(),
+		CheckDestroy: testsupport.CheckResourcesDestroyed(loadbalancer.ResourceType, loadbalancer.ByID(t, nil)),
+		Steps: []resource.TestStep{
+			{
+				// Create a HTTP service without setting a listen port.
+				Config: tmplMan.Render(t,
+					"testdata/r/hcloud_load_balancer", loadbalancer.Basic,
+					"testdata/r/hcloud_load_balancer_service", &testtemplate.RLoadBalancerService{
+						Name:           svcName,
+						Protocol:       "http",
+						LoadBalancerID: fmt.Sprintf("%s.%s.id", loadbalancer.ResourceType, loadbalancer.Basic.Name),
+					},
+				),
+			},
+			{
+				// Immediately remove it from the Load Balancer.
+				Config: tmplMan.Render(t, "testdata/r/hcloud_load_balancer", loadbalancer.Basic),
+			},
+		},
+	})
+
+	certData := testtemplate.NewRCertificate(t, "test-cert", "example.org")
+	resource.Test(t, resource.TestCase{
+		PreCheck:     testsupport.AccTestPreCheck(t),
+		Providers:    testsupport.AccTestProviders(),
+		CheckDestroy: testsupport.CheckResourcesDestroyed(loadbalancer.ResourceType, loadbalancer.ByID(t, nil)),
+		Steps: []resource.TestStep{
+			{
+				// Create a HTTPS service without setting a listen port.
+				Config: tmplMan.Render(t,
+					"testdata/r/hcloud_certificate", certData,
+					"testdata/r/hcloud_load_balancer", loadbalancer.Basic,
+					"testdata/r/hcloud_load_balancer_service", &testtemplate.RLoadBalancerService{
+						Name:           svcName,
+						Protocol:       "https",
+						LoadBalancerID: fmt.Sprintf("%s.%s.id", loadbalancer.ResourceType, loadbalancer.Basic.Name),
+						AddHTTP:        true,
+						HTTP: testtemplate.RLoadBalancerServiceHTTP{
+							Certificates: []string{fmt.Sprintf("hcloud_certificate.%s.id", certData.Name)},
+						},
+					},
+				),
+			},
+			{
+				// Immediately remove it from the Load Balancer.
+				Config: tmplMan.Render(t, "testdata/r/hcloud_load_balancer", loadbalancer.Basic),
 			},
 		},
 	})

@@ -255,6 +255,7 @@ func resourceLoadBalancerServiceUpdate(d *schema.ResourceData, m interface{}) er
 	}
 	return resourceLoadBalancerServiceRead(d, m)
 }
+
 func resourceLoadBalancerServiceRead(d *schema.ResourceData, m interface{}) error {
 	lb, err := resourceLoadBalancerServiceGetLoadBalancer(d, m)
 	if err != nil {
@@ -293,36 +294,26 @@ func resourceLoadBalancerServiceRead(d *schema.ResourceData, m interface{}) erro
 }
 
 func resourceLoadBalancerServiceDelete(d *schema.ResourceData, m interface{}) error {
+	const op = "hcloud/resourceLoadBalancerServiceDelete"
+
 	client := m.(*hcloud.Client)
 	ctx := context.Background()
 
 	lb, err := resourceLoadBalancerServiceGetLoadBalancer(d, m)
 	if err != nil {
-		return err
+		return fmt.Errorf("%s: %v", op, err)
 	}
 
-	protocol := d.Get("protocol")
-	listenPort := d.Get("listen_port").(int)
-	if listenPort == 0 {
-		if protocol == hcloud.LoadBalancerServiceProtocolHTTP {
-			listenPort = 80
-		}
-		if protocol == hcloud.LoadBalancerServiceProtocolHTTPS {
-			listenPort = 443
-		}
+	listenPort, ok := d.GetOk("listen_port")
+	if !ok {
+		return fmt.Errorf("%s: no listen_port set", op)
 	}
-
-	for _, svc := range lb.Services {
-		if svc.ListenPort != listenPort {
-			continue
-		}
-		action, _, err := client.LoadBalancer.DeleteService(ctx, lb, listenPort)
-		if err != nil {
-			return err
-		}
-		if err := waitForLoadBalancerAction(ctx, client, action, lb); err != nil {
-			return err
-		}
+	action, _, err := client.LoadBalancer.DeleteService(ctx, lb, listenPort.(int))
+	if err != nil {
+		return fmt.Errorf("%s: %v", op, err)
+	}
+	if err := waitForLoadBalancerAction(ctx, client, action, lb); err != nil {
+		return fmt.Errorf("%s: %v", op, err)
 	}
 
 	return nil
