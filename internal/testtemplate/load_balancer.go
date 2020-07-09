@@ -1,5 +1,16 @@
 package testtemplate
 
+// DLoadBalancer defines the fields for the "testdata/d/hcloud_load_balancer"
+// template.
+type DLoadBalancer struct {
+	DataCommon
+
+	Name             string
+	LoadBalancerID   string
+	LoadBalancerName string
+	LabelSelector    string
+}
+
 // RLoadBalancer defines the fields for the "testdata/r/hcloud_load_balancer"
 // template.
 type RLoadBalancer struct {
