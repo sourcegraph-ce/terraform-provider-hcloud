@@ -28,7 +28,7 @@ func init() {
 // Basic Load Balancer for use in load balancer related test.
 //
 // Do not modify!
-var Basic = &testtemplate.RLoadBalancer{
+var Basic = &RData{
 	Name:         "basic-load-balancer",
 	LocationName: "nbg1",
 }
@@ -70,4 +70,108 @@ func ByID(t *testing.T, lb *hcloud.LoadBalancer) func(*hcloud.Client, int) bool 
 		}
 		return true
 	}
+}
+
+// DData defines the fields for the "testdata/d/hcloud_load_balancer"
+// template.
+type DData struct {
+	testtemplate.DataCommon
+
+	Name             string
+	LoadBalancerID   string
+	LoadBalancerName string
+	LabelSelector    string
+}
+
+// RData defines the fields for the "testdata/r/hcloud_load_balancer"
+// template.
+type RData struct {
+	testtemplate.DataCommon
+
+	Name          string
+	Type          string
+	LocationName  string
+	NetworkZone   string
+	Algorithm     string
+	ServerTargets []RDataInlineServerTarget
+	Labels        map[string]string
+}
+
+// RDataInlineServerTarget represents a Load Balancer server target
+// that is added inline to the Load Balancer.
+type RDataInlineServerTarget struct {
+	ServerID string
+}
+
+// RDataService defines the fields for the
+// "testdata/r/hcloud_load_balancer_service" template.
+type RDataService struct {
+	testtemplate.DataCommon
+
+	Name            string
+	LoadBalancerID  string
+	Protocol        string
+	ListenPort      int
+	DestinationPort int
+	Proxyprotocol   bool
+
+	AddHTTP bool // Required as the RLoadBalancerServiceHTTP is not comparable
+	HTTP    RDataServiceHTTP
+
+	AddHealthCheck bool // Required as the RLoadBalancerServiceHealthCheck is not comparable
+	HealthCheck    RDataServiceHealthCheck
+}
+
+// RDataServiceHTTP contains data for an HTTP load balancer service.
+type RDataServiceHTTP struct {
+	CookieName     string
+	CookieLifeTime int
+	Certificates   []string
+	RedirectHTTP   bool
+}
+
+// RDataServiceHealthCheck contains data for a load balancer service
+// Health Check.
+type RDataServiceHealthCheck struct {
+	Protocol string
+	Port     int
+	Interval int
+	Timeout  int
+	Retries  int
+	HTTP     RDataServiceHealthCheckHTTP
+}
+
+// RDataServiceHealthCheckHTTP contains data for a load balancer service
+// HTTP Health Check.
+type RDataServiceHealthCheckHTTP struct {
+	Domain      string
+	Path        string
+	Response    string
+	TLS         bool
+	StatusCodes []string
+}
+
+// RDataTarget defines the fields for the
+// "testdata/r/hcloud_load_balancer_target" template.
+type RDataTarget struct {
+	testtemplate.DataCommon
+
+	Name           string
+	Type           string
+	LoadBalancerID string
+	ServerID       string
+	UsePrivateIP   bool
+	DependsOn      []string
+}
+
+// RDataNetwork defines the fields for the
+// "testdata/r/hcloud_load_balancer_network" template.
+type RDataNetwork struct {
+	testtemplate.DataCommon
+
+	Name                  string
+	LoadBalancerID        string
+	NetworkID             string
+	IP                    string
+	EnablePublicInterface bool
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hetznercloud/hcloud-go/hcloud"
 	"github.com/terraform-providers/terraform-provider-hcloud/internal/testsupport"
+	"github.com/terraform-providers/terraform-provider-hcloud/internal/testtemplate"
 )
 
 func init() {
@@ -54,4 +55,33 @@ func ByID(t *testing.T, srv *hcloud.Server) func(*hcloud.Client, int) bool {
 		}
 		return true
 	}
+}
+
+// RData defines the fields for the "testdata/r/hcloud_server" template.
+type RData struct {
+	testtemplate.DataCommon
+
+	Name         string
+	Type         string
+	Image        string
+	LocationName string
+	DataCenter   string
+	SSHKeys      []string
+	KeepDisk     bool
+	Rescue       bool
+	Backups      bool
+	Labels       map[string]string
+	UserData     string
+}
+
+// RDataNetwork defines the fields for the "testdata/r/hcloud_server_network"
+// template.
+type RDataNetwork struct {
+	testtemplate.DataCommon
+
+	Name      string
+	ServerID  string
+	NetworkID string
+	IP        string
+	AliasIPs  []string
 }

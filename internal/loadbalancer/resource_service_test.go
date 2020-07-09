@@ -29,7 +29,7 @@ func TestAccHcloudLoadBalancerService_TCP(t *testing.T) {
 			{
 				Config: tmplMan.Render(t,
 					"testdata/r/hcloud_load_balancer", loadbalancer.Basic,
-					"testdata/r/hcloud_load_balancer_service", &testtemplate.RLoadBalancerService{
+					"testdata/r/hcloud_load_balancer_service", &loadbalancer.RDataService{
 						Name:            svcName,
 						Protocol:        "tcp",
 						LoadBalancerID:  fmt.Sprintf("%s.%s.id", loadbalancer.ResourceType, loadbalancer.Basic.Name),
@@ -71,7 +71,7 @@ func TestAccHcloudLoadBalancerService_HTTP(t *testing.T) {
 				// Create a HTTP service using defaults
 				Config: tmplMan.Render(t,
 					"testdata/r/hcloud_load_balancer", loadbalancer.Basic,
-					"testdata/r/hcloud_load_balancer_service", &testtemplate.RLoadBalancerService{
+					"testdata/r/hcloud_load_balancer_service", &loadbalancer.RDataService{
 						Name:           svcName,
 						Protocol:       "http",
 						LoadBalancerID: fmt.Sprintf("%s.%s.id", loadbalancer.ResourceType, loadbalancer.Basic.Name),
@@ -92,14 +92,14 @@ func TestAccHcloudLoadBalancerService_HTTP(t *testing.T) {
 				// Create a HTTP service using non-default ports.
 				Config: tmplMan.Render(t,
 					"testdata/r/hcloud_load_balancer", loadbalancer.Basic,
-					"testdata/r/hcloud_load_balancer_service", &testtemplate.RLoadBalancerService{
+					"testdata/r/hcloud_load_balancer_service", &loadbalancer.RDataService{
 						Name:            svcName,
 						Protocol:        "http",
 						ListenPort:      81,
 						DestinationPort: 8080,
 						LoadBalancerID:  fmt.Sprintf("%s.%s.id", loadbalancer.ResourceType, loadbalancer.Basic.Name),
 						AddHTTP:         true,
-						HTTP: testtemplate.RLoadBalancerServiceHTTP{
+						HTTP: loadbalancer.RDataServiceHTTP{
 							CookieName:     "TESTCOOKIE",
 							CookieLifeTime: 800,
 						},
@@ -122,19 +122,19 @@ func TestAccHcloudLoadBalancerService_HTTP(t *testing.T) {
 				// Create a HTTP service with health check
 				Config: tmplMan.Render(t,
 					"testdata/r/hcloud_load_balancer", loadbalancer.Basic,
-					"testdata/r/hcloud_load_balancer_service", &testtemplate.RLoadBalancerService{
+					"testdata/r/hcloud_load_balancer_service", &loadbalancer.RDataService{
 						Name:            svcName,
 						Protocol:        "http",
 						DestinationPort: 8080,
 						LoadBalancerID:  fmt.Sprintf("%s.%s.id", loadbalancer.ResourceType, loadbalancer.Basic.Name),
 						AddHealthCheck:  true,
-						HealthCheck: testtemplate.RLoadBalancerServiceHealthCheck{
+						HealthCheck: loadbalancer.RDataServiceHealthCheck{
 							Protocol: "http",
 							Port:     8080,
 							Interval: 30,
 							Timeout:  20,
 							Retries:  2,
-							HTTP: testtemplate.RLoadBalancerServiceHealthCheckHTTP{
+							HTTP: loadbalancer.RDataServiceHealthCheckHTTP{
 								Domain:      "example.com",
 								Path:        "/internal/health",
 								Response:    "OK",
@@ -174,7 +174,7 @@ func TestAccHcloudLoadBalancerService_HTTPS(t *testing.T) {
 		cert hcloud.Certificate
 	)
 
-	certData := testtemplate.NewRCertificate(t, "test-cert", "example.org")
+	certData := certificate.NewRData(t, "test-cert", "example.org")
 	certResName := fmt.Sprintf("%s.%s", certificate.ResourceType, certData.Name)
 
 	lbResName := fmt.Sprintf("%s.%s", loadbalancer.ResourceType, loadbalancer.Basic.Name)
@@ -191,12 +191,12 @@ func TestAccHcloudLoadBalancerService_HTTPS(t *testing.T) {
 				Config: tmplMan.Render(t,
 					"testdata/r/hcloud_certificate", certData,
 					"testdata/r/hcloud_load_balancer", loadbalancer.Basic,
-					"testdata/r/hcloud_load_balancer_service", &testtemplate.RLoadBalancerService{
+					"testdata/r/hcloud_load_balancer_service", &loadbalancer.RDataService{
 						Name:           svcName,
 						LoadBalancerID: lbResName + ".id",
 						Protocol:       "https",
 						AddHTTP:        true,
-						HTTP: testtemplate.RLoadBalancerServiceHTTP{
+						HTTP: loadbalancer.RDataServiceHTTP{
 							Certificates: []string{certResName + ".id"},
 							RedirectHTTP: true,
 						},
@@ -232,7 +232,7 @@ func TestAccHcloudLoadBalancerService_CreateDelete_NoListenPort(t *testing.T) {
 				// Create a HTTP service without setting a listen port.
 				Config: tmplMan.Render(t,
 					"testdata/r/hcloud_load_balancer", loadbalancer.Basic,
-					"testdata/r/hcloud_load_balancer_service", &testtemplate.RLoadBalancerService{
+					"testdata/r/hcloud_load_balancer_service", &loadbalancer.RDataService{
 						Name:           svcName,
 						Protocol:       "http",
 						LoadBalancerID: fmt.Sprintf("%s.%s.id", loadbalancer.ResourceType, loadbalancer.Basic.Name),
@@ -246,7 +246,7 @@ func TestAccHcloudLoadBalancerService_CreateDelete_NoListenPort(t *testing.T) {
 		},
 	})
 
-	certData := testtemplate.NewRCertificate(t, "test-cert", "example.org")
+	certData := certificate.NewRData(t, "test-cert", "example.org")
 	resource.Test(t, resource.TestCase{
 		PreCheck:     testsupport.AccTestPreCheck(t),
 		Providers:    testsupport.AccTestProviders(),
@@ -257,12 +257,12 @@ func TestAccHcloudLoadBalancerService_CreateDelete_NoListenPort(t *testing.T) {
 				Config: tmplMan.Render(t,
 					"testdata/r/hcloud_certificate", certData,
 					"testdata/r/hcloud_load_balancer", loadbalancer.Basic,
-					"testdata/r/hcloud_load_balancer_service", &testtemplate.RLoadBalancerService{
+					"testdata/r/hcloud_load_balancer_service", &loadbalancer.RDataService{
 						Name:           svcName,
 						Protocol:       "https",
 						LoadBalancerID: fmt.Sprintf("%s.%s.id", loadbalancer.ResourceType, loadbalancer.Basic.Name),
 						AddHTTP:        true,
-						HTTP: testtemplate.RLoadBalancerServiceHTTP{
+						HTTP: loadbalancer.RDataServiceHTTP{
 							Certificates: []string{fmt.Sprintf("hcloud_certificate.%s.id", certData.Name)},
 						},
 					},

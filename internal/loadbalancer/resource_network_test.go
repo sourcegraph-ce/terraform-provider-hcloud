@@ -27,23 +27,23 @@ func TestAccHcloudLoadBalancerNetwork(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: tmplMan.Render(t,
-					"testdata/r/hcloud_network", &testtemplate.RNetwork{
+					"testdata/r/hcloud_network", &network.RData{
 						Name:    "test-network",
 						IPRange: "10.0.0.0/16",
 					},
-					"testdata/r/hcloud_network_subnet", &testtemplate.RNetworkSubnet{
+					"testdata/r/hcloud_network_subnet", &network.RDataSubnet{
 						Name:        "test-network-subnet",
 						Type:        "cloud",
 						NetworkID:   "hcloud_network.test-network.id",
 						NetworkZone: "eu-central",
 						IPRange:     "10.0.1.0/24",
 					},
-					"testdata/r/hcloud_load_balancer", &testtemplate.RLoadBalancer{
+					"testdata/r/hcloud_load_balancer", &loadbalancer.RData{
 						Name:        "lb-network-test",
 						Type:        "lb11",
 						NetworkZone: "eu-central",
 					},
-					"testdata/r/hcloud_load_balancer_network", &testtemplate.RLoadBalancerNetwork{
+					"testdata/r/hcloud_load_balancer_network", &loadbalancer.RDataNetwork{
 						Name:                  "test-network",
 						LoadBalancerID:        "hcloud_load_balancer.lb-network-test.id",
 						NetworkID:             "hcloud_network.test-network.id",
@@ -77,23 +77,23 @@ func TestAccHcloudLoadBalancerNetwork(t *testing.T) {
 			},
 			{
 				Config: tmplMan.Render(t,
-					"testdata/r/hcloud_network", &testtemplate.RNetwork{
+					"testdata/r/hcloud_network", &network.RData{
 						Name:    "test-network",
 						IPRange: "10.0.0.0/16",
 					},
-					"testdata/r/hcloud_network_subnet", &testtemplate.RNetworkSubnet{
+					"testdata/r/hcloud_network_subnet", &network.RDataSubnet{
 						Name:        "test-network-subnet",
 						Type:        "cloud",
 						NetworkID:   "hcloud_network.test-network.id",
 						NetworkZone: "eu-central",
 						IPRange:     "10.0.1.0/24",
 					},
-					"testdata/r/hcloud_load_balancer", &testtemplate.RLoadBalancer{
+					"testdata/r/hcloud_load_balancer", &loadbalancer.RData{
 						Name:        "lb-network-test",
 						Type:        "lb11",
 						NetworkZone: "eu-central",
 					},
-					"testdata/r/hcloud_load_balancer_network", &testtemplate.RLoadBalancerNetwork{
+					"testdata/r/hcloud_load_balancer_network", &loadbalancer.RDataNetwork{
 						Name:                  "test-network",
 						LoadBalancerID:        "hcloud_load_balancer.lb-network-test.id",
 						NetworkID:             "hcloud_network.test-network.id",

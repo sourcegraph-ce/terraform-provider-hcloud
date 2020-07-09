@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hetznercloud/hcloud-go/hcloud"
 	"github.com/terraform-providers/terraform-provider-hcloud/internal/loadbalancer"
+	"github.com/terraform-providers/terraform-provider-hcloud/internal/network"
 	"github.com/terraform-providers/terraform-provider-hcloud/internal/server"
 	"github.com/terraform-providers/terraform-provider-hcloud/internal/testsupport"
 	"github.com/terraform-providers/terraform-provider-hcloud/internal/testtemplate"
@@ -27,17 +28,17 @@ func TestAccHcloudLoadBalancerTarget(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: tmplMan.Render(t,
-					"testdata/r/hcloud_server", &testtemplate.RServer{
+					"testdata/r/hcloud_server", &server.RData{
 						Name:  "lb-server-target",
 						Type:  "cx11",
 						Image: "ubuntu-20.04",
 					},
-					"testdata/r/hcloud_load_balancer", &testtemplate.RLoadBalancer{
+					"testdata/r/hcloud_load_balancer", &loadbalancer.RData{
 						Name:        "target-test-lb",
 						Type:        "lb11",
 						NetworkZone: "eu-central",
 					},
-					"testdata/r/hcloud_load_balancer_target", &testtemplate.RLoadBalancerTarget{
+					"testdata/r/hcloud_load_balancer_target", &loadbalancer.RDataTarget{
 						Name:           "lb-test-target",
 						Type:           "server",
 						LoadBalancerID: "hcloud_load_balancer.target-test-lb.id",
@@ -80,39 +81,39 @@ func TestAccHcloudLoadBalancerTarget_UsePrivateIP(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: tmplMan.Render(t,
-					"testdata/r/hcloud_network", &testtemplate.RNetwork{
+					"testdata/r/hcloud_network", &network.RData{
 						Name:    "lb-target-test-network",
 						IPRange: "10.0.0.0/16",
 					},
-					"testdata/r/hcloud_network_subnet", &testtemplate.RNetworkSubnet{
+					"testdata/r/hcloud_network_subnet", &network.RDataSubnet{
 						Name:        "lb-target-test-subnet",
 						NetworkID:   "hcloud_network.lb-target-test-network.id",
 						Type:        "cloud",
 						NetworkZone: "eu-central",
 						IPRange:     "10.0.1.0/24",
 					},
-					"testdata/r/hcloud_server", &testtemplate.RServer{
+					"testdata/r/hcloud_server", &server.RData{
 						Name:  "lb-server-target",
 						Type:  "cx11",
 						Image: "ubuntu-20.04",
 					},
-					"testdata/r/hcloud_server_network", &testtemplate.RServerNetwork{
+					"testdata/r/hcloud_server_network", &server.RDataNetwork{
 						Name:      "lb-server-network",
 						ServerID:  "hcloud_server.lb-server-target.id",
 						NetworkID: "hcloud_network.lb-target-test-network.id",
 					},
-					"testdata/r/hcloud_load_balancer", &testtemplate.RLoadBalancer{
+					"testdata/r/hcloud_load_balancer", &loadbalancer.RData{
 						Name:        "target-test-lb",
 						Type:        "lb11",
 						NetworkZone: "eu-central",
 					},
-					"testdata/r/hcloud_load_balancer_network", &testtemplate.RLoadBalancerNetwork{
+					"testdata/r/hcloud_load_balancer_network", &loadbalancer.RDataNetwork{
 						Name:                  "target-test-lb-network",
 						LoadBalancerID:        "hcloud_load_balancer.target-test-lb.id",
 						NetworkID:             "hcloud_network.lb-target-test-network.id",
 						EnablePublicInterface: true,
 					},
-					"testdata/r/hcloud_load_balancer_target", &testtemplate.RLoadBalancerTarget{
+					"testdata/r/hcloud_load_balancer_target", &loadbalancer.RDataTarget{
 						Name:           "lb-test-target",
 						Type:           "server",
 						LoadBalancerID: "hcloud_load_balancer.target-test-lb.id",

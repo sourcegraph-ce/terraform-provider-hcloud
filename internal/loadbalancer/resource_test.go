@@ -49,7 +49,7 @@ func TestLoadBalancerResource_Basic(t *testing.T) {
 				// setting all optional fields and renaming the load
 				// balancer.
 				Config: tmplMan.Render(t,
-					"testdata/r/hcloud_load_balancer", &testtemplate.RLoadBalancer{
+					"testdata/r/hcloud_load_balancer", &loadbalancer.RData{
 						Name:         loadbalancer.Basic.Name + "-renamed",
 						LocationName: "nbg1",
 						Algorithm:    "least_connections",
@@ -93,17 +93,17 @@ func TestLoadBalancerResource_InlineTarget(t *testing.T) {
 			{
 				// Add two inline targets to the load balancer
 				Config: tmplMan.Render(t,
-					"testdata/r/hcloud_server", &testtemplate.RServer{
+					"testdata/r/hcloud_server", &server.RData{
 						Name:  "some-server",
 						Type:  "cx11",
 						Image: "ubuntu-20.04",
 					},
-					"testdata/r/hcloud_server", &testtemplate.RServer{
+					"testdata/r/hcloud_server", &server.RData{
 						Name:  "another-server",
 						Type:  "cx11",
 						Image: "ubuntu-20.04",
 					},
-					"testdata/r/hcloud_load_balancer", &testtemplate.RLoadBalancer{
+					"testdata/r/hcloud_load_balancer", &loadbalancer.RData{
 						Name:         "some-lb",
 						LocationName: "nbg1",
 						Algorithm:    "least_connections",
@@ -111,7 +111,7 @@ func TestLoadBalancerResource_InlineTarget(t *testing.T) {
 							"key1": "value1",
 							"key2": "value2",
 						},
-						ServerTargets: []testtemplate.RLoadBalancerInlineServerTarget{
+						ServerTargets: []loadbalancer.RDataInlineServerTarget{
 							{ServerID: "hcloud_server.some-server.id"},
 							{ServerID: "hcloud_server.another-server.id"},
 						},
@@ -133,7 +133,7 @@ func TestLoadBalancerResource_InlineTarget(t *testing.T) {
 			{
 				// Remove the targets from the load balancer
 				Config: tmplMan.Render(t,
-					"testdata/r/hcloud_load_balancer", &testtemplate.RLoadBalancer{
+					"testdata/r/hcloud_load_balancer", &loadbalancer.RData{
 						Name:         "some-lb",
 						LocationName: "nbg1",
 						Algorithm:    "least_connections",

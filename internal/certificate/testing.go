@@ -4,9 +4,11 @@ import (
 	"context"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hetznercloud/hcloud-go/hcloud"
 	"github.com/terraform-providers/terraform-provider-hcloud/internal/testsupport"
+	"github.com/terraform-providers/terraform-provider-hcloud/internal/testtemplate"
 )
 
 func init() {
@@ -53,5 +55,28 @@ func ByID(t *testing.T, cert *hcloud.Certificate) func(*hcloud.Client, int) bool
 			*cert = *found
 		}
 		return true
+	}
+}
+
+// RData defines the fields for the "testdata/r/hcloud_certificate"
+// template.
+type RData struct {
+	testtemplate.DataCommon
+
+	Name        string
+	PrivateKey  string
+	Certificate string
+}
+
+// NewRData creates data for a new certificate resource.
+func NewRData(t *testing.T, name, domain string) *RData {
+	rCert, rKey, err := acctest.RandTLSCert(domain)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return &RData{
+		Name:        name,
+		PrivateKey:  rKey,
+		Certificate: rCert,
 	}
 }

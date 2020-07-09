@@ -13,7 +13,7 @@ import (
 func TestAccHcloudDataSourceLoadBalancerTest(t *testing.T) {
 	tmplMan := testtemplate.Manager{}
 
-	lbData := &testtemplate.RLoadBalancer{
+	lbData := &loadbalancer.RData{
 		Name:         "some-load-balancer",
 		LocationName: "nbg1",
 		Labels: map[string]string{
@@ -29,15 +29,15 @@ func TestAccHcloudDataSourceLoadBalancerTest(t *testing.T) {
 			{
 				Config: tmplMan.Render(t,
 					"testdata/r/hcloud_load_balancer", lbData,
-					"testdata/d/hcloud_load_balancer", &testtemplate.DLoadBalancer{
+					"testdata/d/hcloud_load_balancer", &loadbalancer.DData{
 						Name:             "lb_by_name",
 						LoadBalancerName: fmt.Sprintf("%s.name", lbResName),
 					},
-					"testdata/d/hcloud_load_balancer", &testtemplate.DLoadBalancer{
+					"testdata/d/hcloud_load_balancer", &loadbalancer.DData{
 						Name:           "lb_by_id",
 						LoadBalancerID: fmt.Sprintf("%s.id", lbResName),
 					},
-					"testdata/d/hcloud_load_balancer", &testtemplate.DLoadBalancer{
+					"testdata/d/hcloud_load_balancer", &loadbalancer.DData{
 						Name:          "lb_by_sel",
 						LabelSelector: fmt.Sprintf("key=${%s.labels[\"key\"]}", lbResName),
 					},
