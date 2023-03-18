@@ -3,7 +3,7 @@ package hcloud
 import (
 	"context"
 	"fmt"
-	"log"
+	log "github.com/sourcegraph-ce/logrus"
 	"os"
 	"strconv"
 	"strings"
